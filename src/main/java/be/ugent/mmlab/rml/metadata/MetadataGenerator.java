@@ -1,7 +1,7 @@
 package be.ugent.mmlab.rml.metadata;
 
 import be.ugent.mmlab.rml.model.TriplesMap;
-import be.ugent.mmlab.rml.model.dataset.StdRMLDataset;
+import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import java.io.File;
 import org.openrdf.model.URI;
 import org.openrdf.model.impl.URIImpl;
@@ -18,11 +18,11 @@ public class MetadataGenerator {
     // Log
     private static final Logger log =
             LoggerFactory.getLogger(MetadataGenerator.class);
-    private StdRMLDataset metadataDataset;
+    private RMLDataset metadataDataset;
     private URI datasetURI;
     
     public MetadataGenerator(
-            StdRMLDataset metadataDataset, String pathToNativeStore) {
+            RMLDataset metadataDataset, String pathToNativeStore) {
         //generate dataset for the metadata graph
         this.metadataDataset = metadataDataset;
 
@@ -33,10 +33,11 @@ public class MetadataGenerator {
 
     //TODO:Perhaps completely skip this method
     public void generateMetaData(String outputFormat,
-            StdRMLDataset sesameDataSet, long startTime) {
+            RMLDataset sesameDataSet, long startTime, 
+            Integer totaldistinctSubjects) {
 
-        generateDatasetMetaData(
-                outputFormat, sesameDataSet, metadataDataset);
+        generateDatasetMetaData(outputFormat, sesameDataSet, 
+                metadataDataset, totaldistinctSubjects);
 
         //TODO:add metadata this Triples Map started then, finished then and lasted that much
         long endTime = System.nanoTime();
@@ -47,16 +48,17 @@ public class MetadataGenerator {
     }
 
     private void generateDatasetMetaData(String format,
-            StdRMLDataset sesameDataSet, StdRMLDataset metadataDataset) {
+            RMLDataset dataset, RMLDataset metadataDataset, 
+            Integer totaldistinctSubjects) {
         log.debug("Generating metadata on dataset level...");
         
-        int numberOfTriples = sesameDataSet.getSize();
+        int numberOfTriples = dataset.getSize();
         
         VoIDMetadataGenerator voidMetadataGenerator = 
                 new VoIDMetadataGenerator();
         
-        voidMetadataGenerator.generateDatasetMetaData(
-                datasetURI, metadataDataset, numberOfTriples, format);
+        voidMetadataGenerator.generateDatasetMetaData(datasetURI, dataset,
+                metadataDataset, numberOfTriples, format);
         
         DCATMetadataGenerator dcatMetadataGenerator = 
                 new DCATMetadataGenerator();
@@ -71,15 +73,16 @@ public class MetadataGenerator {
         //TODO: Add void:vocabulary metadata
     }
 
-    public void generateTriplesMapMetaData(StdRMLDataset metadataDataset,
-            TriplesMap triplesMap, Integer numberOfTriples) {
+    public void generateTriplesMapMetaData(
+            RMLDataset dataset, RMLDataset metadataDataset,
+            TriplesMap triplesMap, Integer numberOfTriples, Integer entities) {
         log.debug("Generating metadata on Triples Map level...");
 
         VoIDMetadataGenerator voidMetadataGenerator = 
                 new VoIDMetadataGenerator();
         
-        voidMetadataGenerator.generateTriplesMapMetaData(
-                datasetURI, metadataDataset, triplesMap, numberOfTriples);
+        voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, dataset, 
+                metadataDataset, triplesMap, numberOfTriples);
 
     }
 }
