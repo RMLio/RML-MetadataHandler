@@ -10,6 +10,7 @@ import org.openrdf.model.Value;
 import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ public class VoIDMetadataGenerator {
             LoggerFactory.getLogger(VoIDMetadataGenerator.class);
     
     public void generateDatasetMetaData(URI datasetURI, RMLDataset dataset, 
-            RMLDataset metadataDataset, String format, String outputFile){
+            RMLDataset metadataDataset, String outputFile){
         
         //Add VoID Dataset type
         Value obj = new URIImpl(
@@ -51,8 +52,8 @@ public class VoIDMetadataGenerator {
         pre = new URIImpl(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.FEATURE.toString());
-        
-        obj = generateDatasetFeature(format);
+        RDFFormat format = metadataDataset.getFormat();
+        obj = new URIImpl(format.getStandardURI().stringValue());
         
         metadataDataset.add(datasetURI, pre, obj);
         
@@ -129,7 +130,6 @@ public class VoIDMetadataGenerator {
     public Resource generateDatasetFeature(String format) {
         
         URI obj = null;
-        
         switch (format) {
             case "ntriples":
                 obj =  new URIImpl("http://www.w3.org/ns/formats/N-Triples");
@@ -138,7 +138,7 @@ public class VoIDMetadataGenerator {
                 obj =  new URIImpl("http://www.w3.org/ns/formats/N3");
                 break;
             case "turtle":
-                obj = new URIImpl("http://www.w3.org/ns/formats/turtle");
+                obj = new URIImpl("http://www.w3.org/ns/formats/Turtle");
                 break;
             case "nquads":
                 obj =  new URIImpl("http://www.w3.org/ns/formats/N-Quads");
@@ -180,9 +180,6 @@ public class VoIDMetadataGenerator {
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.DATADUMP);
         
-        //File file = new File(
-        //        triplesMap.getLogicalSource().getSource().getTemplate());
-        log.debug("outputFile " + outputFile);
         File file = new File(outputFile);
         obj = new URIImpl("file://" + file.getAbsolutePath());
         
