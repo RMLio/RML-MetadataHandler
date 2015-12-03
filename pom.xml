@@ -10,7 +10,7 @@
   <groupId>be.ugent.mmlab.rml</groupId>
   <artifactId>RML-Metadata</artifactId>
   <version>1.0</version>
-  <name>RML-Metadata</name>
+  <name>RML - Metadata</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
