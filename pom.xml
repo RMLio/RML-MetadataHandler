@@ -8,9 +8,9 @@
     <version>1.0</version>
   </parent>
   <groupId>be.ugent.mmlab.rml</groupId>
-  <artifactId>RML-Metadata</artifactId>
+  <artifactId>RML-MetadataHandler</artifactId>
   <version>1.0</version>
-  <name>RML - Metadata</name>
+  <name>RML - Metadata Handler</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -23,7 +23,7 @@
       </dependency>
       <dependency>
           <groupId>be.ugent.mmlab.rml</groupId>
-          <artifactId>RML-DataRetrieval</artifactId>
+          <artifactId>RML-DataRetrievalHandler</artifactId>
           <version>1.0</version>
       </dependency>
       <dependency>
