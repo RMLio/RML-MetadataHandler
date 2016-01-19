@@ -1,6 +1,7 @@
 package be.ugent.mmlab.rml.metadata;
 
 import be.ugent.mmlab.rml.model.TriplesMap;
+import be.ugent.mmlab.rml.model.dataset.MetadataRMLDataset;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import be.ugent.mmlab.rml.vocabularies.VoIDVocabulary;
 import java.io.File;
@@ -28,8 +29,9 @@ public class VoIDMetadataGenerator {
     private static final Logger log = 
             LoggerFactory.getLogger(VoIDMetadataGenerator.class);
     
-    public void generateDatasetMetaData(URI datasetURI, RMLDataset dataset, 
+    public void generateDatasetMetaData(URI datasetURI, MetadataRMLDataset dataset, 
             RMLDataset metadataDataset, String outputFile){
+        log.debug("VoID Metadata generation...");
         
         //Add VoID Dataset type
         Value obj = new URIImpl(
@@ -52,7 +54,8 @@ public class VoIDMetadataGenerator {
         pre = new URIImpl(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.FEATURE.toString());
-        RDFFormat format = metadataDataset.getFormat();
+        RDFFormat format = dataset.selectFormat(dataset.getMetadataFormat());
+
         obj = new URIImpl(format.getStandardURI().stringValue());
         
         metadataDataset.add(datasetURI, pre, obj);
@@ -120,7 +123,7 @@ public class VoIDMetadataGenerator {
         pre = new URIImpl(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.DATADUMP.toString());
-        
+
         File file = new File(outputFile);
         obj = new URIImpl("file://" + file.getAbsolutePath());
         
@@ -159,7 +162,7 @@ public class VoIDMetadataGenerator {
     }
     
     public void generateTriplesMapMetaData(
-            URI datasetURI, RMLDataset dataset, RMLDataset metadataDataset, 
+            URI datasetURI, MetadataRMLDataset dataset, RMLDataset metadataDataset, 
             TriplesMap triplesMap, String outputFile) {
         Value obj ;
         Resource sub = new URIImpl(triplesMap.getName());

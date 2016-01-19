@@ -2,8 +2,10 @@ package be.ugent.mmlab.rml.metadata;
 
 import be.ugent.mmlab.rml.model.RMLMapping;
 import be.ugent.mmlab.rml.model.TriplesMap;
+import be.ugent.mmlab.rml.model.dataset.MetadataRMLDataset;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import java.io.File;
+import java.util.List;
 import org.openrdf.model.URI;
 import org.openrdf.model.impl.URIImpl;
 import org.slf4j.Logger;
@@ -34,7 +36,7 @@ public class MetadataGenerator {
     }
     
     public MetadataGenerator(
-            RMLDataset metadataDataset, String pathToNativeStore) {
+            MetadataRMLDataset metadataDataset, String pathToNativeStore) {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
 
@@ -44,28 +46,34 @@ public class MetadataGenerator {
     }
 
     //TODO:Perhaps completely skip this method
-    public void generateMetaData(RMLMapping rmlMapping, RMLDataset dataset, 
+    public void generateMetaData(RMLMapping rmlMapping, MetadataRMLDataset dataset, 
             String outputFile, String startTime, String endTime) {
-
-        generateDatasetMetaData(rmlMapping, dataset, outputFile, startTime, endTime);
+        generateDatasetMetaData(
+                rmlMapping, dataset, outputFile, startTime, endTime);
+        if(dataset.getMetadataDataset() == null)
+            log.debug("No metasata were generated.");
+        log.debug("metadata dataset size " + dataset.getMetadataDataset().getSize());
     }
 
     private void generateDatasetMetaData(RMLMapping rmlMapping,
-            RMLDataset dataset, String outputFile,
+            MetadataRMLDataset dataset, String outputFile,
             String startTime, String endTime) {
         log.debug("Generating metadata on dataset level...");
-        String[] vocabs = dataset.getMetadataVocab();
+        List vocabs = dataset.getMetadataVocab();
         
-        if (vocabs.length == 0) {
-            provMetadataGenerator.generateDatasetMetaData(datasetURI,
-                    rmlMapping, dataset, dataset.getMetadataDataset(),
+        if (vocabs == null || vocabs.isEmpty()) {
+            log.info("No metadata vocabularies specified, "
+                    + "generate metadata for all.");
+            provMetadataGenerator.generateDatasetMetaData(
+                    datasetURI, rmlMapping, dataset, dataset.getMetadataDataset(),
                     outputFile, startTime, endTime);
             voidMetadataGenerator.generateDatasetMetaData(datasetURI, 
                             dataset, dataset.getMetadataDataset(), outputFile);
+            return;
         }
         
-        for (String vocab : vocabs) {
-            switch (vocab){
+        for ( Object vocab : vocabs) {
+            switch (vocab.toString()){
                 case "prov":
                     log.debug("Generating PROV metadata...");
                     provMetadataGenerator.generateDatasetMetaData(datasetURI, 
@@ -94,21 +102,21 @@ public class MetadataGenerator {
     }
 
     public void generateTriplesMapMetaData(
-            RMLDataset dataset, TriplesMap triplesMap, String outputFile,
+            MetadataRMLDataset dataset, TriplesMap triplesMap, String outputFile,
             String startDateTime, String endDateTime) {
         log.debug("Generating metadata on Triples Map level...");
         RMLDataset metadataDataset = dataset.getMetadataDataset();
-        String[] vocabs = dataset.getMetadataVocab();
+        List vocabs = dataset.getMetadataVocab();
         
-        if(vocabs.length == 0){
+        if(vocabs.isEmpty()){
             provMetadataGenerator.generateTriplesMapMetaData(datasetURI, triplesMap,
                     dataset, metadataDataset, outputFile, startDateTime, endDateTime);
             voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, dataset, 
                     metadataDataset, triplesMap, outputFile);
         }
         
-        for (String vocab : vocabs) {
-            switch (vocab){
+        for ( Object vocab : vocabs) {
+            switch (vocab.toString()){
                 case "prov":
                     provMetadataGenerator.generateTriplesMapMetaData(datasetURI, triplesMap, 
                     dataset, metadataDataset, outputFile, startDateTime, endDateTime);

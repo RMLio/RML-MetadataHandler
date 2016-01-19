@@ -24,7 +24,7 @@ public class PROVMetadataGenerator {
     
     // Log
     private static final Logger log = 
-            LoggerFactory.getLogger(VoIDMetadataGenerator.class);
+            LoggerFactory.getLogger(PROVMetadataGenerator.class);
     
     public void generateDatasetMetaData(URI datasetURI, RMLMapping rmlMapping, 
             RMLDataset dataset, RMLDataset metadataDataset,  
@@ -32,12 +32,18 @@ public class PROVMetadataGenerator {
         log.debug("PROV Metadata generation...");
         
         //Add Entity type
-        Value obj = new URIImpl(
+        Value obj = null;
+        try{
+            obj = new URIImpl(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.ENTITY_CLASS);
+        }
+        catch(Exception ex){
+            log.error("Could not generate URI" + ex);
+        }
 
         metadataDataset.add(datasetURI, RDF.TYPE, obj);
-        
+   
         //Add prov:wasGeneratedBy
         URI pre = new URIImpl(
                 PROVVocabulary.PROV_NAMESPACE
