@@ -1,9 +1,11 @@
 package be.ugent.mmlab.rml.metadata;
 
 import be.ugent.mmlab.rml.model.RMLMapping;
+import be.ugent.mmlab.rml.model.Source;
 import be.ugent.mmlab.rml.model.TriplesMap;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import be.ugent.mmlab.rml.vocabularies.PROVVocabulary;
+import java.util.Collection;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
@@ -64,6 +66,18 @@ public class PROVMetadataGenerator {
         addStartEndDateTime(
                 metadataDataset, mappingActivity, startTime, endTime);
         
+        //Add prov:wasDerivedFrom
+        pre = new URIImpl(
+                PROVVocabulary.PROV_NAMESPACE
+                + PROVVocabulary.PROVTerm.WASDERIVEDFROM.toString());
+        
+        Collection<TriplesMap> triplesMaps = rmlMapping.getTriplesMaps();
+        for(TriplesMap triplesMap : triplesMaps){
+            Source source = triplesMap.getLogicalSource().getSource();;
+            obj = new LiteralImpl(source.getTemplate());
+            metadataDataset.add(datasetURI, pre, obj);
+        }
+        
     }
     
     public void generateTriplesMapMetaData(URI datasetURI, TriplesMap map, 
@@ -94,6 +108,28 @@ public class PROVMetadataGenerator {
         addStartEndDateTime(
                 metadataDataset, mappingActivity, startTime, endTime);
     
+    }
+    
+    public void generateTripleMetaData(RMLDataset dataset, RMLDataset metadataDataset, 
+            Resource subject, URI predicate, Value object){
+        
+        Resource tripleBN = new BNodeImpl(
+                                  RandomStringUtils.randomAlphanumeric(10));
+        
+        //Add subject
+        URI pre = new URIImpl(RDF.NAMESPACE + "subject");
+        
+        metadataDataset.add(tripleBN, pre, subject);
+        
+        //Add predicate
+        pre = new URIImpl(RDF.NAMESPACE + "predicate");
+        
+        metadataDataset.add(tripleBN, pre, predicate);
+        
+        //Add object
+        pre = new URIImpl(RDF.NAMESPACE + "object");
+        
+        metadataDataset.add(tripleBN, pre, object);
     }
     
     private void addStartEndDateTime(RMLDataset metadataDataset, 

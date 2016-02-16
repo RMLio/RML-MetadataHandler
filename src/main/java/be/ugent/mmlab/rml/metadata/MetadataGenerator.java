@@ -6,7 +6,9 @@ import be.ugent.mmlab.rml.model.dataset.MetadataRMLDataset;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import java.io.File;
 import java.util.List;
+import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.impl.URIImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,11 @@ public class MetadataGenerator {
     private URI datasetURI;
     private VoIDMetadataGenerator voidMetadataGenerator;
     private PROVMetadataGenerator provMetadataGenerator;
+    
+    public MetadataGenerator() {
+        voidMetadataGenerator = new VoIDMetadataGenerator();
+        provMetadataGenerator = new PROVMetadataGenerator();
+    }
     
     public MetadataGenerator(String pathToNativeStore) {
 
@@ -127,12 +134,14 @@ public class MetadataGenerator {
                     break;
             }
         }
+    }
+    
+    public void generateTripleMetaData(MetadataRMLDataset dataset, 
+            Resource subject, URI predicate, Value object)
+    {
+        RMLDataset metadataDataset = dataset.getMetadataDataset();
         
-        
-        
-        
-        
-        
-
+        provMetadataGenerator.generateTripleMetaData(dataset, metadataDataset, 
+                subject, predicate, object);
     }
 }
