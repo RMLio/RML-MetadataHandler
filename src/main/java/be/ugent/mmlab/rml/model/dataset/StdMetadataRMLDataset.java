@@ -2,6 +2,7 @@ package be.ugent.mmlab.rml.model.dataset;
 
 import be.ugent.mmlab.rml.model.TriplesMap;
 import be.ugent.mmlab.rml.vocabularies.PROVVocabulary;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -13,9 +14,10 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.BNodeImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
+import org.openrdf.repository.manager.LocalRepositoryManager;
 import org.openrdf.rio.RDFFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,24 +30,16 @@ import org.slf4j.LoggerFactory;
 public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLDataset {
     // Log
     private static final Logger log = 
-            LoggerFactory.getLogger(StdMetadataRMLDataset.class);
+            LoggerFactory.getLogger(StdMetadataRMLDataset.class.getSimpleName());
     
+    protected LocalRepositoryManager manager = null;
     protected Integer 
             distinctClasses = 0, distinctProperties = 0,
             distinctSubjects = 0, distinctObjects = 0, 
             distinctEntities = 0, triples = 0;
     protected String metadataLevel = "None";
     protected String metadataFormat = null;
-    protected RMLDataset metadataDataset ;
     protected List metadataVocab;
-    
-    public StdMetadataRMLDataset() {
-        this(false);
-    }
-
-    public StdMetadataRMLDataset(boolean inferencing) {
-        super(inferencing);
-    }
     
     //TODO: Spring it
     @Override
@@ -119,6 +113,14 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
             log.error("Exception " + ex);
         }
     }
+    
+    @Override
+    public void setNumbers(){
+        distinctSubjects = 0;
+        distinctObjects = 0;
+        distinctEntities = 0;
+        distinctClasses = 0;
+    }
    
     /**
      *
@@ -179,9 +181,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
         RepositoryConnection con = null;
         try {
             con = repository.getConnection();
-            RepositoryResult<Statement> results = 
-                    con.getStatements(s, null, null, true);
-            if(!results.hasNext())
+            if(!con.hasStatement(s, null, null, true))
                 return true;
         } catch (RepositoryException ex) {
             log.error("Repository Exception " + ex);
@@ -200,10 +200,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
         RepositoryConnection con = null;
         try {
             con = repository.getConnection();
-            //TODO: Change the following to con.hasStatements
-            RepositoryResult<Statement> results = 
-                    con.getStatements(null, null, o, true);
-            if (!results.hasNext()) {
+            if (!con.hasStatement(null, null, o, true)) {
                 return true;
             }
         } catch (RepositoryException ex) {
@@ -223,9 +220,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
         RepositoryConnection con = null;
         try {
             con = repository.getConnection();
-            RepositoryResult<Statement> results = 
-                    con.getStatements(null, RDF.TYPE, o, true);
-            if (!results.hasNext()) {
+            if (!con.hasStatement(null, RDF.TYPE, o, true)) {
                 return true;
             }
         } catch (RepositoryException ex) {
@@ -245,9 +240,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
         RepositoryConnection con = null;
         try {
             con = repository.getConnection();
-            RepositoryResult<Statement> results = 
-                    con.getStatements(null, p, null, true);
-            if (!results.hasNext()) {
+            if (!con.hasStatement(null, p, null, true)) {
                 return true;
             }
         } catch (RepositoryException ex) {
@@ -287,12 +280,12 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
         return format;
     }
     
-    public void setDatasetMetadata(RMLDataset metadataDataset, 
+    @Override
+    public void setDatasetMetadata(
             String metadataLevel, String metadataFormat, String metadataVocab){
         log.info("Setting up medata dataset configuration...");
         setMetadataLevel(metadataLevel);
         setMetadataFormat(metadataFormat);
-        setMetadataDataset(metadataDataset);
         setMetadataVocab(metadataVocab);
     }
     
@@ -302,10 +295,6 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
     
     private void setMetadataFormat(String metadataFormat){
         this.metadataFormat = metadataFormat;
-    }
-    
-    private void setMetadataDataset(RMLDataset metadataDataset){
-        this.metadataDataset = metadataDataset;
     }
     
     private void setMetadataVocab(String metadataVocab){
@@ -330,13 +319,41 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
     }
     
     @Override
-    public RMLDataset getMetadataDataset(){
-        return metadataDataset;
-    }
-    
-    @Override
     public List getMetadataVocab(){
         return metadataVocab;
+    }
+
+    @Override
+    public void addRepository(String repositoryID, LocalRepositoryManager manager) {
+        log.error("Not supported yet."); 
+    }
+
+    @Override
+    public void addToRepository(TriplesMap map, 
+        Resource s, URI p, Value o, Resource... contexts) {
+        log.error("Not supported yet."); 
+    }
+
+    @Override
+    public File getTarget() {
+        log.error("Not supported yet.");
+        return null;
+    }
+
+    @Override
+    public String getID() {
+        log.error("Not supported yet."); 
+        return null;
+    }
+
+    @Override
+    public void closeSubRepository() {
+        log.error("Not supported yet."); 
+    }
+
+    @Override
+    public void setRepository(Repository repository) {
+        log.error("Not supported yet."); 
     }
 }
 

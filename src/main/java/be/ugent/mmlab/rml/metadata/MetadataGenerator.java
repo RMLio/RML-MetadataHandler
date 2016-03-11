@@ -10,6 +10,10 @@ import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.URIImpl;
+import org.openrdf.repository.Repository;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.config.RepositoryConfigException;
+import org.openrdf.repository.manager.LocalRepositoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +26,11 @@ public class MetadataGenerator {
 
     // Log
     private static final Logger log =
-            LoggerFactory.getLogger(MetadataGenerator.class);
+            LoggerFactory.getLogger(MetadataGenerator.class.getSimpleName());
     private URI datasetURI;
     private VoIDMetadataGenerator voidMetadataGenerator;
     private PROVMetadataGenerator provMetadataGenerator;
+    protected LocalRepositoryManager manager;
     
     public MetadataGenerator() {
         voidMetadataGenerator = new VoIDMetadataGenerator();
@@ -43,6 +48,18 @@ public class MetadataGenerator {
     }
     
     public MetadataGenerator(
+            String pathToNativeStore, LocalRepositoryManager manager) {
+
+        voidMetadataGenerator = new VoIDMetadataGenerator();
+        provMetadataGenerator = new PROVMetadataGenerator();
+        this.manager = manager;
+
+        //generate the datasetURI
+        File file = new File(pathToNativeStore);
+        datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
+    }
+    
+    public MetadataGenerator(
             MetadataRMLDataset metadataDataset, String pathToNativeStore) {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
@@ -53,13 +70,22 @@ public class MetadataGenerator {
     }
 
     //TODO:Perhaps completely skip this method
-    public void generateMetaData(RMLMapping rmlMapping, MetadataRMLDataset dataset, 
+    public MetadataRMLDataset generateMetaData(
+            RMLMapping rmlMapping, MetadataRMLDataset dataset, 
             String outputFile, String startTime, String endTime) {
+        try {
+            dataset.setRepository(manager.getRepository("metadata"));
+        } catch (RepositoryConfigException ex) {
+            log.error("Repository Config Exception " + ex);
+        } catch (RepositoryException ex) {
+            log.error("Repository Exception " + ex);
+        }
         generateDatasetMetaData(
                 rmlMapping, dataset, outputFile, startTime, endTime);
-        if(dataset.getMetadataDataset() == null)
-            log.debug("No metasata were generated.");
-        log.debug("metadata dataset size " + dataset.getMetadataDataset().getSize());
+        if(dataset == null)
+            log.debug("No metadata were generated.");
+        
+        return dataset;
     }
 
     private void generateDatasetMetaData(RMLMapping rmlMapping,
@@ -72,10 +98,10 @@ public class MetadataGenerator {
             log.info("No metadata vocabularies specified, "
                     + "generate metadata for all.");
             provMetadataGenerator.generateDatasetMetaData(
-                    datasetURI, rmlMapping, dataset, dataset.getMetadataDataset(),
+                    datasetURI, rmlMapping, dataset,
                     outputFile, startTime, endTime);
-            voidMetadataGenerator.generateDatasetMetaData(datasetURI, 
-                            dataset, dataset.getMetadataDataset(), outputFile);
+            voidMetadataGenerator.generateDatasetMetaData(
+                    datasetURI, dataset, outputFile, manager);
             return;
         }
         
@@ -84,64 +110,70 @@ public class MetadataGenerator {
                 case "prov":
                     log.debug("Generating PROV metadata...");
                     provMetadataGenerator.generateDatasetMetaData(datasetURI, 
-                        rmlMapping, dataset, dataset.getMetadataDataset(), 
-                        outputFile, startTime, endTime);
+                        rmlMapping, dataset, outputFile, startTime, endTime);
                     break;
                     
                 case "void":
                     log.debug("Generating VoID metadata...");
-                    voidMetadataGenerator.generateDatasetMetaData(datasetURI, 
-                            dataset, dataset.getMetadataDataset(), outputFile);
+                    voidMetadataGenerator.generateDatasetMetaData(
+                            datasetURI, dataset, outputFile, manager);
                     break;
                     
                 case "dcat":
                     DCATMetadataGenerator dcatMetadataGenerator =
                             new DCATMetadataGenerator();
                     dcatMetadataGenerator.generateDatasetMetaData(
-                            datasetURI, dataset.getMetadataDataset());
+                            datasetURI, dataset);
                     break;
             }
         }
         log.info("RML mapping done! Generated "
-                + dataset.getMetadataDataset().getSize()
+                + dataset.getSize()
                 + " metadata triples.");
 
     }
 
     public void generateTriplesMapMetaData(
             MetadataRMLDataset dataset, TriplesMap triplesMap, String outputFile,
-            String startDateTime, String endDateTime) {
+            String startDateTime, String endDateTime, LocalRepositoryManager manager) {
         log.debug("Generating metadata on Triples Map level...");
-        RMLDataset metadataDataset = dataset.getMetadataDataset();
         List vocabs = dataset.getMetadataVocab();
         
         if(vocabs.isEmpty()){
             provMetadataGenerator.generateTriplesMapMetaData(datasetURI, triplesMap,
-                    dataset, metadataDataset, outputFile, startDateTime, endDateTime);
+                    dataset, outputFile, startDateTime, endDateTime);
             voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, dataset, 
-                    metadataDataset, triplesMap, outputFile);
+                    triplesMap, outputFile, manager);
         }
         
         for ( Object vocab : vocabs) {
             switch (vocab.toString()){
                 case "prov":
-                    provMetadataGenerator.generateTriplesMapMetaData(datasetURI, triplesMap, 
-                    dataset, metadataDataset, outputFile, startDateTime, endDateTime);
+                    provMetadataGenerator.generateTriplesMapMetaData(datasetURI, 
+                    triplesMap, dataset, outputFile, startDateTime, endDateTime);
                     break;
                 case "void":
-                    voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, dataset, 
-                    metadataDataset, triplesMap, outputFile);
+                    voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, 
+                    dataset, triplesMap, outputFile, manager);
                     break;
             }
         }
     }
     
-    public void generateTripleMetaData(MetadataRMLDataset dataset, 
-            Resource subject, URI predicate, Value object)
-    {
-        RMLDataset metadataDataset = dataset.getMetadataDataset();
-        
-        provMetadataGenerator.generateTripleMetaData(dataset, metadataDataset, 
-                subject, predicate, object);
+    public void generateTripleMetaData(MetadataRMLDataset dataset,
+            Resource subject, URI predicate, Value object) {
+        Repository tmp = dataset.getRepository();
+        try {
+            Repository repo = manager.getRepository("metadata");
+            dataset.setRepository(manager.getRepository("metadata"));
+        } catch (RepositoryConfigException ex) {
+            log.error("Repository Config Exception " + ex);
+        } catch (RepositoryException ex) {
+            log.error("Repository Exception " + ex);
+        }
+        provMetadataGenerator.generateTripleMetaData(
+                (RMLDataset) dataset, subject, predicate, object);
+
+        dataset.setRepository(tmp);
     }
 }

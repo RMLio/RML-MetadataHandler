@@ -26,11 +26,10 @@ public class PROVMetadataGenerator {
     
     // Log
     private static final Logger log = 
-            LoggerFactory.getLogger(PROVMetadataGenerator.class);
+            LoggerFactory.getLogger(PROVMetadataGenerator.class.getSimpleName());
     
     public void generateDatasetMetaData(URI datasetURI, RMLMapping rmlMapping, 
-            RMLDataset dataset, RMLDataset metadataDataset,  
-            String outputFile, String startTime, String endTime){
+            RMLDataset dataset, String outputFile, String startTime, String endTime){
         log.debug("PROV Metadata generation...");
         
         //Add Entity type
@@ -44,7 +43,7 @@ public class PROVMetadataGenerator {
             log.error("Could not generate URI" + ex);
         }
 
-        metadataDataset.add(datasetURI, RDF.TYPE, obj);
+        dataset.add(datasetURI, RDF.TYPE, obj);
    
         //Add prov:wasGeneratedBy
         URI pre = new URIImpl(
@@ -54,17 +53,17 @@ public class PROVMetadataGenerator {
         Resource mappingActivity = new BNodeImpl(
                                   RandomStringUtils.randomAlphanumeric(10));
         
-        metadataDataset.add(datasetURI, pre, mappingActivity);
+        dataset.add(datasetURI, pre, mappingActivity);
         
         //Add a prov:Activity
         obj = new URIImpl(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.ACTIVITY_CLASS);
         
-        metadataDataset.add(mappingActivity, RDF.TYPE, obj);
+        dataset.add(mappingActivity, RDF.TYPE, obj);
         
         addStartEndDateTime(
-                metadataDataset, mappingActivity, startTime, endTime);
+                dataset, mappingActivity, startTime, endTime);
         
         //Add prov:wasDerivedFrom
         pre = new URIImpl(
@@ -75,14 +74,13 @@ public class PROVMetadataGenerator {
         for(TriplesMap triplesMap : triplesMaps){
             Source source = triplesMap.getLogicalSource().getSource();;
             obj = new LiteralImpl(source.getTemplate());
-            metadataDataset.add(datasetURI, pre, obj);
+            dataset.add(datasetURI, pre, obj);
         }
         
     }
     
     public void generateTriplesMapMetaData(URI datasetURI, TriplesMap map, 
-            RMLDataset dataset, RMLDataset metadataDataset,  
-            String outputFile, String startTime, String endTime){
+            RMLDataset dataset, String outputFile, String startTime, String endTime){
         Value obj;
         log.debug("PROV Triples Map Metadata generation...");
         
@@ -96,21 +94,20 @@ public class PROVMetadataGenerator {
                 + PROVVocabulary.PROVTerm.USED.toString());
         
         //Add prov:used
-        addUsed(metadataDataset, map, mappingActivity, pre);
+        addUsed(dataset, map, mappingActivity, pre);
         
         //Add prov:wasGeneratedBy
         pre = new URIImpl(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.WASGENERATEDBY.toString());      
         
-        metadataDataset.add(new URIImpl(map.getName()), pre, mappingActivity);
+        dataset.add(new URIImpl(map.getName()), pre, mappingActivity);
         
-        addStartEndDateTime(
-                metadataDataset, mappingActivity, startTime, endTime);
-    
+        addStartEndDateTime(dataset, mappingActivity, startTime, endTime);
+        
     }
     
-    public void generateTripleMetaData(RMLDataset dataset, RMLDataset metadataDataset, 
+    public void generateTripleMetaData(RMLDataset dataset,
             Resource subject, URI predicate, Value object){
         
         Resource tripleBN = new BNodeImpl(
@@ -119,17 +116,17 @@ public class PROVMetadataGenerator {
         //Add subject
         URI pre = new URIImpl(RDF.NAMESPACE + "subject");
         
-        metadataDataset.add(tripleBN, pre, subject);
+        dataset.add(tripleBN, pre, subject);
         
         //Add predicate
         pre = new URIImpl(RDF.NAMESPACE + "predicate");
         
-        metadataDataset.add(tripleBN, pre, predicate);
+        dataset.add(tripleBN, pre, predicate);
         
         //Add object
         pre = new URIImpl(RDF.NAMESPACE + "object");
         
-        metadataDataset.add(tripleBN, pre, object);
+        dataset.add(tripleBN, pre, object);
     }
     
     private void addStartEndDateTime(RMLDataset metadataDataset, 
