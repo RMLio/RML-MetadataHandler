@@ -45,6 +45,12 @@ public class MetadataGenerator {
         //generate the datasetURI
         File file = new File(pathToNativeStore);
         datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
+        this.manager = new LocalRepositoryManager(new File(pathToNativeStore));
+        try {
+            this.manager.initialize();
+        } catch (RepositoryException ex) {
+            log.error("Repository Exception " + ex);
+        }
     }
     
     public MetadataGenerator(
@@ -161,18 +167,37 @@ public class MetadataGenerator {
     }
     
     public void generateTripleMetaData(MetadataRMLDataset dataset,
-            Resource subject, URI predicate, Value object) {
+            TriplesMap map, Resource subject, URI predicate, Value object) {
         Repository tmp = dataset.getRepository();
+        List vocabs = dataset.getMetadataVocab();
+        
+        log.debug("Generating triple metadata...");
+        
         try {
+            if(!manager.isInitialized())
+                manager.initialize();
             Repository repo = manager.getRepository("metadata");
-            dataset.setRepository(manager.getRepository("metadata"));
+            repo.initialize();
+            dataset.setRepository(repo);
         } catch (RepositoryConfigException ex) {
             log.error("Repository Config Exception " + ex);
         } catch (RepositoryException ex) {
             log.error("Repository Exception " + ex);
         }
-        provMetadataGenerator.generateTripleMetaData(
-                (RMLDataset) dataset, subject, predicate, object);
+        
+        if(vocabs.isEmpty()){
+            provMetadataGenerator.generateTripleMetaData(
+                (RMLDataset) dataset, map, subject, predicate, object);
+        }
+        
+        for (Object vocab : vocabs) {
+            switch (vocab.toString()) {
+                case "prov":
+                    provMetadataGenerator.generateTripleMetaData(
+                            (RMLDataset) dataset, map, subject, predicate, object);
+                    break;
+            }
+        }
 
         dataset.setRepository(tmp);
     }

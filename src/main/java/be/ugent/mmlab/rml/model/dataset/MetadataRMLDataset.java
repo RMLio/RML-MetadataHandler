@@ -22,8 +22,8 @@ public interface MetadataRMLDataset extends RMLDataset{
      * @param map
      * @param contexts
      */
-    public void addReification(
-            Resource s, URI p, Value o, TriplesMap map, Resource... contexts);
+    public void addReification(TriplesMap map,
+            Resource s, URI p, Value o, Resource... contexts);
     
     /**
      *

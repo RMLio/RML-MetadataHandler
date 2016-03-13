@@ -1,7 +1,6 @@
 package be.ugent.mmlab.rml.model.dataset;
 
 import be.ugent.mmlab.rml.model.TriplesMap;
-import be.ugent.mmlab.rml.vocabularies.PROVVocabulary;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +11,6 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
@@ -67,8 +65,8 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
     }
     
     @Override
-    public void addReification(
-            Resource s, URI p, Value o, TriplesMap map, Resource... contexts) {
+    public void addReification(TriplesMap map, 
+        Resource s, URI p, Value o, Resource... contexts) {
         
         log.debug("Add triple (" + s.stringValue()
                 + ", " + p.stringValue() + ", " + o.stringValue() + ").");
@@ -93,14 +91,6 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
                 
                 //Add object
                 st = myFactory.createStatement(triple, RDF.OBJECT, o);
-                con.add(st, contexts);
-                
-                //Add prov:wasGeneratedBy
-                //TODO:Make it point to the SM/POM after skolemization
-                st = myFactory.createStatement(triple, 
-                        new URIImpl(PROVVocabulary.PROV_NAMESPACE + 
-                        PROVVocabulary.PROVTerm.WASGENERATEDBY.toString()),
-                        new URIImpl(map.getName()));
                 con.add(st, contexts);
                 
                 con.commit();                
@@ -323,7 +313,6 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
         return metadataVocab;
     }
 
-    @Override
     public void addRepository(String repositoryID, LocalRepositoryManager manager) {
         log.error("Not supported yet."); 
     }

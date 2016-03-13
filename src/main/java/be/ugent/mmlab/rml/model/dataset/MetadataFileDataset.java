@@ -156,7 +156,7 @@ public class MetadataFileDataset extends StdMetadataRMLDataset implements Metada
                     con.add(st, contexts);
                     break;
                 case "triple":
-                    //checkDistinctEntities(s, p, o);
+                    checkDistinctEntities(s, p, o);
                     con.add(st, contexts);
                     break;
                 case "None":

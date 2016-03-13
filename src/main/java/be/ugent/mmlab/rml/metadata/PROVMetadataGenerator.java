@@ -3,6 +3,7 @@ package be.ugent.mmlab.rml.metadata;
 import be.ugent.mmlab.rml.model.RMLMapping;
 import be.ugent.mmlab.rml.model.Source;
 import be.ugent.mmlab.rml.model.TriplesMap;
+import be.ugent.mmlab.rml.model.dataset.MetadataRMLDataset;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import be.ugent.mmlab.rml.vocabularies.PROVVocabulary;
 import java.util.Collection;
@@ -107,8 +108,9 @@ public class PROVMetadataGenerator {
         
     }
     
-    public void generateTripleMetaData(RMLDataset dataset,
+    public void generateTripleMetaData(RMLDataset originalDataset, TriplesMap map,
             Resource subject, URI predicate, Value object){
+        MetadataRMLDataset dataset = (MetadataRMLDataset) originalDataset ;
         
         Resource tripleBN = new BNodeImpl(
                                   RandomStringUtils.randomAlphanumeric(10));
@@ -127,6 +129,11 @@ public class PROVMetadataGenerator {
         pre = new URIImpl(RDF.NAMESPACE + "object");
         
         dataset.add(tripleBN, pre, object);
+        
+        dataset.add(tripleBN, 
+                        new URIImpl(PROVVocabulary.PROV_NAMESPACE + 
+                        PROVVocabulary.PROVTerm.WASGENERATEDBY.toString()),
+                        new URIImpl(map.getName()));
     }
     
     private void addStartEndDateTime(RMLDataset metadataDataset, 
