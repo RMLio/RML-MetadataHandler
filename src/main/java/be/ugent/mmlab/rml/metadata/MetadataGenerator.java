@@ -30,17 +30,20 @@ public class MetadataGenerator {
     private URI datasetURI;
     private VoIDMetadataGenerator voidMetadataGenerator;
     private PROVMetadataGenerator provMetadataGenerator;
+    private CoMetadataGenerator coMetadataGenerator;
     protected LocalRepositoryManager manager;
     
     public MetadataGenerator() {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
+        coMetadataGenerator = new CoMetadataGenerator();
     }
     
     public MetadataGenerator(String pathToNativeStore) {
 
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
+        coMetadataGenerator = new CoMetadataGenerator();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
@@ -58,6 +61,7 @@ public class MetadataGenerator {
 
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
+        coMetadataGenerator = new CoMetadataGenerator();
         this.manager = manager;
 
         //generate the datasetURI
@@ -69,7 +73,7 @@ public class MetadataGenerator {
             MetadataRMLDataset metadataDataset, String pathToNativeStore) {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
-
+        coMetadataGenerator = new CoMetadataGenerator();
         //generate the datasetURI
         File file = new File(pathToNativeStore);
         datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
@@ -131,6 +135,8 @@ public class MetadataGenerator {
                     dcatMetadataGenerator.generateDatasetMetaData(
                             datasetURI, dataset);
                     break;
+                case "co":
+                    log.debug("Generating validation metadata...");
             }
         }
         log.info("RML mapping done! Generated "
@@ -162,12 +168,17 @@ public class MetadataGenerator {
                     voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, 
                     dataset, triplesMap, outputFile, manager);
                     break;
+                case "co":
+                    provMetadataGenerator.generateTriplesMapMetaData(datasetURI, triplesMap,
+                            dataset, outputFile, startDateTime, endDateTime);
+                    voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, dataset, 
+                            triplesMap, outputFile, manager);
             }
         }
     }
     
-    public void generateTripleMetaData(MetadataRMLDataset dataset,
-            TriplesMap map, Resource subject, URI predicate, Value object) {
+    public void generateTripleMetaData(MetadataRMLDataset dataset, TriplesMap map, 
+            Resource subject, URI predicate, Value object, String validation) {
         Repository tmp = dataset.getRepository();
         List vocabs = dataset.getMetadataVocab();
         
@@ -196,6 +207,13 @@ public class MetadataGenerator {
                     provMetadataGenerator.generateTripleMetaData(
                             (RMLDataset) dataset, map, subject, predicate, object);
                     break;
+                case "co":
+                    log.debug("Generating validation metadata");
+                    coMetadataGenerator.generateTripleMetaData((RMLDataset) dataset, 
+                            map, subject, predicate, object, validation);
+                    break;
+                default:
+                    log.debug("No option found");
             }
         }
 
