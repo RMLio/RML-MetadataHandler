@@ -41,7 +41,7 @@ public class CoMetadataGenerator {
                 case "validation":
                     log.debug("Adding validation metadata");
                     URIImpl valid = new URIImpl(
-                            CoVocabulary.CO_NAMESPACE + CoVocabulary.COTerm.VALIDATION_CLASS);
+                            CoVocabulary.CO_NAMESPACE + CoVocabulary.COTerm.VERIFICATION_CLASS);
                     dataset.add(tripleBN, pre, valid);
                     addTripleDetails(dataset, tripleBN, subject, predicate, object);
                     break;
