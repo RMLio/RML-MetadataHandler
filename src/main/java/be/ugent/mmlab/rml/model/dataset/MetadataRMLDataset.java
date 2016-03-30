@@ -114,12 +114,7 @@ public interface MetadataRMLDataset extends RMLDataset{
      * @return
      */
     public String getMetadataFormat();
-    
-    /**
-     *
-     * @return
-     */
-    public List getMetadataVocab();
+   
     
     /**
      *

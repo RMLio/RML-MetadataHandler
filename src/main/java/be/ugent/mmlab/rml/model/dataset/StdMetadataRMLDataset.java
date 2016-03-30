@@ -36,8 +36,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
             distinctSubjects = 0, distinctObjects = 0, 
             distinctEntities = 0, triples = 0;
     protected String metadataLevel = "None";
-    protected String metadataFormat = null;
-    protected List metadataVocab;
+    protected String metadataFormat = null;    
     
     //TODO: Spring it
     @Override
