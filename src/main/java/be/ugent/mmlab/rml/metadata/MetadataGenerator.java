@@ -30,17 +30,20 @@ public class MetadataGenerator {
     private URI datasetURI;
     private VoIDMetadataGenerator voidMetadataGenerator;
     private PROVMetadataGenerator provMetadataGenerator;
+    private DCATMetadataGenerator dcatMetadataGenerator;
     protected LocalRepositoryManager manager;
     
     public MetadataGenerator() {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
     }
     
     public MetadataGenerator(String pathToNativeStore) {
 
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
@@ -58,6 +61,7 @@ public class MetadataGenerator {
 
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
         this.manager = manager;
 
         //generate the datasetURI
@@ -69,6 +73,7 @@ public class MetadataGenerator {
             MetadataRMLDataset metadataDataset, String pathToNativeStore) {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
@@ -126,8 +131,7 @@ public class MetadataGenerator {
                     break;
                     
                 case "dcat":
-                    DCATMetadataGenerator dcatMetadataGenerator =
-                            new DCATMetadataGenerator();
+                    log.debug("Generating DCAT metadata...");
                     dcatMetadataGenerator.generateDatasetMetaData(
                             datasetURI, dataset);
                     break;
@@ -162,12 +166,15 @@ public class MetadataGenerator {
                     voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, 
                     dataset, triplesMap, outputFile, manager);
                     break;
+                case "dcat":
+                    dcatMetadataGenerator.generateTriplesMapMetaData(
+                            datasetURI, dataset, triplesMap);
             }
         }
     }
     
-    public void generateTripleMetaData(MetadataRMLDataset dataset,
-            TriplesMap map, Resource subject, URI predicate, Value object) {
+    public void generateTripleMetaData(MetadataRMLDataset dataset, TriplesMap map, 
+            Resource subject, URI predicate, Value object, String validation) {
         Repository tmp = dataset.getRepository();
         List vocabs = dataset.getMetadataVocab();
         

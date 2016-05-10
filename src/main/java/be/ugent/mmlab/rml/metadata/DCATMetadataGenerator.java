@@ -1,5 +1,6 @@
 package be.ugent.mmlab.rml.metadata;
 
+import be.ugent.mmlab.rml.model.TriplesMap;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import be.ugent.mmlab.rml.vocabularies.DCATVocabulary;
 import org.openrdf.model.Resource;
@@ -16,6 +17,18 @@ public class DCATMetadataGenerator {
     
     public void generateDatasetMetaData(
             URI datasetURI, RMLDataset metadataDataset){
+        //Add DCAT Distribution type
+        Resource obj = new URIImpl(
+                DCATVocabulary.DCAT_NAMESPACE
+                + DCATVocabulary.DcatTerm.DISTRIBUTIION_CLASS);
+
+        metadataDataset.add(datasetURI, RDF.TYPE, obj);
+    }
+    
+    public void generateTriplesMapMetaData(
+            URI datasetURI, RMLDataset metadataDataset, TriplesMap triplesMap){
+        triplesMap.getLogicalSource().getSource().getTemplate();
+        
         //Add DCAT Distribution type
         Resource obj = new URIImpl(
                 DCATVocabulary.DCAT_NAMESPACE
