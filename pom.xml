@@ -5,11 +5,11 @@
   <parent>
     <groupId>be.ugent.mmlab.rml</groupId>
     <artifactId>RML-Mapper</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
   </parent>
   <groupId>be.ugent.mmlab.rml</groupId>
   <artifactId>RML-MetadataHandler</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <name>RML - Metadata Handler</name>
   <url>http://maven.apache.org</url>
   <properties>
@@ -38,7 +38,7 @@
       <dependency>
           <groupId>be.ugent.mmlab.rml</groupId>
           <artifactId>RML-Model</artifactId>
-          <version>1.0</version>
+          <version>1.1-SNAPSHOT</version>
       </dependency>
       <dependency>
           <groupId>be.ugent.mmlab.rml</groupId>

@@ -31,12 +31,14 @@ public class MetadataGenerator {
     private VoIDMetadataGenerator voidMetadataGenerator;
     private PROVMetadataGenerator provMetadataGenerator;
     private CoMetadataGenerator coMetadataGenerator;
+    private DCATMetadataGenerator dcatMetadataGenerator;
     protected LocalRepositoryManager manager;
     
     public MetadataGenerator() {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
         coMetadataGenerator = new CoMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
     }
     
     public MetadataGenerator(String pathToNativeStore) {
@@ -44,6 +46,7 @@ public class MetadataGenerator {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
         coMetadataGenerator = new CoMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
@@ -62,6 +65,7 @@ public class MetadataGenerator {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
         coMetadataGenerator = new CoMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
         this.manager = manager;
 
         //generate the datasetURI
@@ -74,6 +78,8 @@ public class MetadataGenerator {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
         coMetadataGenerator = new CoMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
+
         //generate the datasetURI
         File file = new File(pathToNativeStore);
         datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
@@ -130,8 +136,7 @@ public class MetadataGenerator {
                     break;
                     
                 case "dcat":
-                    DCATMetadataGenerator dcatMetadataGenerator =
-                            new DCATMetadataGenerator();
+                    log.debug("Generating DCAT metadata...");
                     dcatMetadataGenerator.generateDatasetMetaData(
                             datasetURI, dataset);
                     break;
@@ -173,6 +178,9 @@ public class MetadataGenerator {
                             dataset, outputFile, startDateTime, endDateTime);
                     voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, dataset, 
                             triplesMap, outputFile, manager);
+                case "dcat":
+                    dcatMetadataGenerator.generateTriplesMapMetaData(
+                            datasetURI, dataset, triplesMap);
             }
         }
     }
