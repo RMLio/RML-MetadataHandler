@@ -7,9 +7,9 @@ import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import java.io.File;
 import java.util.List;
 import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.config.RepositoryConfigException;
@@ -27,7 +27,7 @@ public class MetadataGenerator {
     // Log
     private static final Logger log =
             LoggerFactory.getLogger(MetadataGenerator.class.getSimpleName());
-    private URI datasetURI;
+    private IRI datasetURI;
     private VoIDMetadataGenerator voidMetadataGenerator;
     private PROVMetadataGenerator provMetadataGenerator;
     private CoMetadataGenerator coMetadataGenerator;
@@ -42,6 +42,7 @@ public class MetadataGenerator {
     }
     
     public MetadataGenerator(String pathToNativeStore) {
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
@@ -50,7 +51,7 @@ public class MetadataGenerator {
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
-        datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
+        datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
         this.manager = new LocalRepositoryManager(new File(pathToNativeStore));
         try {
             this.manager.initialize();
@@ -61,6 +62,7 @@ public class MetadataGenerator {
     
     public MetadataGenerator(
             String pathToNativeStore, LocalRepositoryManager manager) {
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
@@ -70,11 +72,13 @@ public class MetadataGenerator {
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
-        datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
+        datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
     }
     
     public MetadataGenerator(
             MetadataRMLDataset metadataDataset, String pathToNativeStore) {
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
         coMetadataGenerator = new CoMetadataGenerator();
@@ -82,7 +86,7 @@ public class MetadataGenerator {
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
-        datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
+        datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
     }
 
     //TODO:Perhaps completely skip this method
@@ -186,7 +190,7 @@ public class MetadataGenerator {
     }
     
     public void generateTripleMetaData(MetadataRMLDataset dataset, TriplesMap map, 
-            Resource subject, URI predicate, Value object, String validation) {
+            Resource subject, IRI predicate, Value object, String validation) {
         Repository tmp = dataset.getRepository();
         List vocabs = dataset.getMetadataVocab();
         

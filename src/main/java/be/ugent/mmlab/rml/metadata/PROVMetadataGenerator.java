@@ -9,11 +9,9 @@ import be.ugent.mmlab.rml.vocabularies.PROVVocabulary;
 import java.util.Collection;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.BNodeImpl;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +27,16 @@ public class PROVMetadataGenerator {
     private static final Logger log = 
             LoggerFactory.getLogger(PROVMetadataGenerator.class.getSimpleName());
     
-    public void generateDatasetMetaData(URI datasetURI, RMLMapping rmlMapping, 
+    public void generateDatasetMetaData(IRI datasetURI, RMLMapping rmlMapping,
             RMLDataset dataset, String outputFile, String startTime, String endTime){
         log.debug("PROV Metadata generation...");
+
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
         
         //Add Entity type
         Value obj = null;
         try{
-            obj = new URIImpl(
+            obj = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.ENTITY_CLASS);
         }
@@ -47,17 +47,17 @@ public class PROVMetadataGenerator {
         dataset.add(datasetURI, RDF.TYPE, obj);
    
         //Add prov:wasGeneratedBy
-        URI pre = new URIImpl(
+        IRI pre = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.WASGENERATEDBY.toString());
         
-        Resource mappingActivity = new BNodeImpl(
+        Resource mappingActivity = vf.createBNode(
                                   RandomStringUtils.randomAlphanumeric(10));
         
         dataset.add(datasetURI, pre, mappingActivity);
         
         //Add a prov:Activity
-        obj = new URIImpl(
+        obj = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.ACTIVITY_CLASS);
         
@@ -67,30 +67,32 @@ public class PROVMetadataGenerator {
                 dataset, mappingActivity, startTime, endTime);
         
         //Add prov:wasDerivedFrom
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.WASDERIVEDFROM.toString());
         
         Collection<TriplesMap> triplesMaps = rmlMapping.getTriplesMaps();
         for(TriplesMap triplesMap : triplesMaps){
             Source source = triplesMap.getLogicalSource().getSource();;
-            obj = new LiteralImpl(source.getTemplate());
+            obj = vf.createLiteral(source.getTemplate());
             dataset.add(datasetURI, pre, obj);
         }
         
     }
     
-    public void generateTriplesMapMetaData(URI datasetURI, TriplesMap map, 
+    public void generateTriplesMapMetaData(IRI datasetURI, TriplesMap map,
             RMLDataset dataset, String outputFile, String startTime, String endTime){
         Value obj;
         log.debug("PROV Triples Map Metadata generation...");
+
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
         
-        Resource mappingActivity = new BNodeImpl(
+        Resource mappingActivity = vf.createBNode(
                                   RandomStringUtils.randomAlphanumeric(10));
         
         log.debug("mapping activity " + mappingActivity);
         //Add prov:used
-        URI pre = new URIImpl(PROVVocabulary.PROV_NAMESPACE + 
+        IRI pre = vf.createIRI(PROVVocabulary.PROV_NAMESPACE +
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.USED.toString());
         
@@ -98,76 +100,80 @@ public class PROVMetadataGenerator {
         addUsed(dataset, map, mappingActivity, pre);
         
         //Add prov:wasGeneratedBy
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.WASGENERATEDBY.toString());      
         
-        dataset.add(new URIImpl(map.getName()), pre, mappingActivity);
+        dataset.add(vf.createIRI(map.getName()), pre, mappingActivity);
         
         addStartEndDateTime(dataset, mappingActivity, startTime, endTime);
         
     }
     
     public void generateTripleMetaData(RMLDataset originalDataset, TriplesMap map,
-            Resource subject, URI predicate, Value object){
+            Resource subject, IRI predicate, Value object){
         MetadataRMLDataset dataset = (MetadataRMLDataset) originalDataset ;
+
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
         
-        Resource tripleBN = new BNodeImpl(
+        Resource tripleBN = vf.createBNode(
                                   RandomStringUtils.randomAlphanumeric(10));
         
         //Add subject
-        URI pre = new URIImpl(RDF.NAMESPACE + "subject");
+        IRI pre = vf.createIRI(RDF.NAMESPACE + "subject");
         
         dataset.add(tripleBN, pre, subject);
         
         //Add predicate
-        pre = new URIImpl(RDF.NAMESPACE + "predicate");
+        pre = vf.createIRI(RDF.NAMESPACE + "predicate");
         
         dataset.add(tripleBN, pre, predicate);
         
         //Add object
-        pre = new URIImpl(RDF.NAMESPACE + "object");
+        pre = vf.createIRI(RDF.NAMESPACE + "object");
         
         dataset.add(tripleBN, pre, object);
         
         dataset.add(tripleBN, 
-                        new URIImpl(PROVVocabulary.PROV_NAMESPACE + 
+                        vf.createIRI(PROVVocabulary.PROV_NAMESPACE +
                         PROVVocabulary.PROVTerm.WASGENERATEDBY.toString()),
-                        new URIImpl(map.getName()));
+                        vf.createIRI(map.getName()));
     }
     
     private void addStartEndDateTime(RMLDataset metadataDataset, 
-            Resource mappingActivity, String startTime, String endTime){ 
+            Resource mappingActivity, String startTime, String endTime){
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
         
         //Add prov:startedAtTime
-        URI pre = new URIImpl(
+        IRI pre = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.STARTEDATTIME.toString());
         
-        Value obj = new LiteralImpl(startTime, 
-                new URIImpl("http://www.w3.org/2001/XMLSchema#date"));
+        Value obj = vf.createLiteral(startTime,
+                vf.createIRI("http://www.w3.org/2001/XMLSchema#date"));
         
         metadataDataset.add(mappingActivity, pre, obj);
         
         //Add prov:startedAtTime
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.ENDDATETIME.toString());
         
-        obj = new LiteralImpl(endTime, new URIImpl("http://www.w3.org/2001/XMLSchema#date"));
+        obj = vf.createLiteral(endTime, vf.createIRI("http://www.w3.org/2001/XMLSchema#date"));
         
         metadataDataset.add(mappingActivity, pre, obj);
     }
     
     public void addUsed (RMLDataset metadataDataset, TriplesMap map,
-            Resource mappingActivity, URI pre){
+            Resource mappingActivity, IRI pre){
         Value obj;
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
         if(map.getLogicalSource().getSource().getClass().getSimpleName().equals("StdLocalFileSource"))
-        obj = new URIImpl("file://" +
+        obj = vf.createIRI("file://" +
                 map.getLogicalSource().getSource().getTemplate());
         else
             //TODO: Check if that's sustainable
-            obj = new URIImpl(map.getLogicalSource().getSource().getTemplate());
+            obj = vf.createIRI(map.getLogicalSource().getSource().getTemplate());
         
         metadataDataset.add(mappingActivity, pre, obj);
     }
