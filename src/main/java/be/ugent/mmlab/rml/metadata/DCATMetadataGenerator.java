@@ -3,10 +3,10 @@ package be.ugent.mmlab.rml.metadata;
 import be.ugent.mmlab.rml.model.TriplesMap;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import be.ugent.mmlab.rml.vocabularies.DCATVocabulary;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 /**
  * RML - Metadata : DCAT Metadata Generator
@@ -16,9 +16,10 @@ import org.openrdf.model.vocabulary.RDF;
 public class DCATMetadataGenerator {
     
     public void generateDatasetMetaData(
-            URI datasetURI, RMLDataset metadataDataset){
+            IRI datasetURI, RMLDataset metadataDataset){
         //Add DCAT Distribution type
-        Resource obj = new URIImpl(
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+        Resource obj = vf.createIRI(
                 DCATVocabulary.DCAT_NAMESPACE
                 + DCATVocabulary.DcatTerm.DISTRIBUTIION_CLASS);
 
@@ -26,11 +27,12 @@ public class DCATMetadataGenerator {
     }
     
     public void generateTriplesMapMetaData(
-            URI datasetURI, RMLDataset metadataDataset, TriplesMap triplesMap){
+            IRI datasetURI, RMLDataset metadataDataset, TriplesMap triplesMap){
         triplesMap.getLogicalSource().getSource().getTemplate();
         
         //Add DCAT Distribution type
-        Resource obj = new URIImpl(
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+        Resource obj = vf.createIRI(
                 DCATVocabulary.DCAT_NAMESPACE
                 + DCATVocabulary.DcatTerm.DISTRIBUTIION_CLASS);
 

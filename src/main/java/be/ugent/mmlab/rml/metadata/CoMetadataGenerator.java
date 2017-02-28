@@ -6,12 +6,11 @@ import be.ugent.mmlab.rml.model.dataset.MetadataRMLDataset;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import be.ugent.mmlab.rml.vocabularies.CoVocabulary;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,27 +26,28 @@ public class CoMetadataGenerator {
             LoggerFactory.getLogger(CoMetadataGenerator.class.getSimpleName());
     
     public void generateTripleMetaData(RMLDataset originalDataset, TriplesMap map,
-            Resource subject, URI predicate, Value object, String validation){
+            Resource subject, IRI predicate, Value object, String validation){
         MetadataRMLDataset dataset = (MetadataRMLDataset) originalDataset ;
-        
-        Resource tripleBN = new BNodeImpl(
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+
+        Resource tripleBN = vf.createIRI(
                                   RandomStringUtils.randomAlphanumeric(10));
         //Add subject
-        URI pre = new URIImpl(
+        IRI pre = vf.createIRI(
                 CoVocabulary.CO_NAMESPACE + CoVocabulary.COTerm.REQUIRES);
         log.debug("pre " + pre);
         if (validation != null) {
             switch (validation) {
                 case "validation":
                     log.debug("Adding validation metadata");
-                    URIImpl valid = new URIImpl(
+                    IRI valid = vf.createIRI(
                             CoVocabulary.CO_NAMESPACE + CoVocabulary.COTerm.VERIFICATION_CLASS);
                     dataset.add(tripleBN, pre, valid);
                     addTripleDetails(dataset, tripleBN, subject, predicate, object);
                     break;
                 case "completion":
                     log.debug("Adding completion metadata");
-                    URIImpl complete = new URIImpl(
+                    IRI complete = vf.createIRI(
                             CoVocabulary.CO_NAMESPACE + CoVocabulary.COTerm.COMPLETION_CLASS);
                     dataset.add(tripleBN, pre, complete);
                     addTripleDetails(dataset, tripleBN, subject, predicate, object);
@@ -64,20 +64,21 @@ public class CoMetadataGenerator {
     }
     
     private void addTripleDetails(MetadataRMLDataset dataset, Resource tripleBN,
-            Resource subject, URI predicate, Value object) {
+            Resource subject, IRI predicate, Value object) {
         //Add subject
-        URI pre = new URIImpl(RDF.NAMESPACE + "subject");
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+        IRI pre = vf.createIRI(RDF.NAMESPACE + "subject");
 
         dataset.add(tripleBN, pre, subject);
 
         //Add predicate
-        pre = new URIImpl(RDF.NAMESPACE + "predicate");
+        pre = vf.createIRI(RDF.NAMESPACE + "predicate");
 
         dataset.add(tripleBN, pre, predicate);
 
         //Add object
         if (object != null) {
-            pre = new URIImpl(RDF.NAMESPACE + "object");
+            pre = vf.createIRI(RDF.NAMESPACE + "object");
 
             dataset.add(tripleBN, pre, object);
         }
