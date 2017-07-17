@@ -207,7 +207,7 @@ public class VoIDMetadataGenerator {
         String[] name = triplesMap.getName().split("#");
         try {
         obj = vf.createIRI("file://"
-                + file.getCanonicalPath().replaceAll("(\\.[a-zA-Z0-9]*)", name[1] + "$1"));
+                + file.getCanonicalPath().replaceAll("(\\.[a-zA-Z0-9]*)", "1" + "$1"));
         } catch (IOException ex) {
             log.error("IO Exception " + ex);
         }
@@ -281,7 +281,7 @@ public class VoIDMetadataGenerator {
         int size = 0;
         String[] name = map.getName().split("#");
         try {
-            dataset.setRepository(manager.getRepository(name[1]));
+            dataset.setRepository(manager.getRepository("1"));
             size = dataset.getSize();
             dataset.setRepository(manager.getRepository("metadata"));
         } catch (RepositoryConfigException ex) {
