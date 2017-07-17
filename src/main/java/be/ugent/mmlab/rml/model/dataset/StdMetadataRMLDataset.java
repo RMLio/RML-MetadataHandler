@@ -255,7 +255,9 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
         
         if(checkDistinctObject(o)){
             ++distinctObjects;
-            if(!o.getClass().getSimpleName().equals("LiteralImpl") 
+            Class ding1 = o.getClass();
+            String ding2 = ding1.getSimpleName();
+            if(!o.getClass().getSimpleName().equals("SimpleLiteral")
                     && checkDistinctSubject((Resource) o))
                 ++distinctEntities;
         }
