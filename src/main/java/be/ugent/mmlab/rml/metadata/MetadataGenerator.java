@@ -40,21 +40,13 @@ public class MetadataGenerator {
     protected LocalRepositoryManager manager;
     
     public MetadataGenerator() {
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        coMetadataGenerator = new CoMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
-        fnoMetadataGenerator = new FnOMetadataGenerator();
+        buildMetadataGenerators();
     }
     
     public MetadataGenerator(String pathToNativeStore) {
         SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        coMetadataGenerator = new CoMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
-        fnoMetadataGenerator = new FnOMetadataGenerator();
+        buildMetadataGenerators();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
@@ -71,11 +63,8 @@ public class MetadataGenerator {
             String pathToNativeStore, LocalRepositoryManager manager) {
         SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        coMetadataGenerator = new CoMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
-        fnoMetadataGenerator = new FnOMetadataGenerator();
+        buildMetadataGenerators();
+
         this.manager = manager;
 
         //generate the datasetURI
@@ -87,15 +76,19 @@ public class MetadataGenerator {
             MetadataRMLDataset metadataDataset, String pathToNativeStore) {
         SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
+        buildMetadataGenerators();
+
+        //generate the datasetURI
+        File file = new File(pathToNativeStore);
+        datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
+    }
+
+    private void buildMetadataGenerators() {
         voidMetadataGenerator = new VoIDMetadataGenerator();
         provMetadataGenerator = new PROVMetadataGenerator();
         coMetadataGenerator = new CoMetadataGenerator();
         dcatMetadataGenerator = new DCATMetadataGenerator();
         fnoMetadataGenerator = new FnOMetadataGenerator();
-
-        //generate the datasetURI
-        File file = new File(pathToNativeStore);
-        datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
     }
 
     //TODO:Perhaps completely skip this method
