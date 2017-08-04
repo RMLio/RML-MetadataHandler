@@ -98,7 +98,7 @@ public class PROVMetadataGenerator {
         
         log.debug("mapping activity " + mappingActivity);
         //Add prov:used
-        IRI pre = vf.createIRI(PROVVocabulary.PROV_NAMESPACE +
+        IRI pre = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.USED.toString());
         
