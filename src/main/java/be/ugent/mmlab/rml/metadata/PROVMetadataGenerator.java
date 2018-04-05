@@ -1,12 +1,15 @@
 package be.ugent.mmlab.rml.metadata;
 
+import be.ugent.mmlab.rml.model.RDFTerm.FunctionTermMap;
 import be.ugent.mmlab.rml.model.RMLMapping;
 import be.ugent.mmlab.rml.model.Source;
 import be.ugent.mmlab.rml.model.TriplesMap;
 import be.ugent.mmlab.rml.model.dataset.MetadataRMLDataset;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import be.ugent.mmlab.rml.vocabularies.PROVVocabulary;
-import java.util.Collection;
+
+import java.util.*;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.IRI;
@@ -26,6 +29,8 @@ public class PROVMetadataGenerator {
     // Log
     private static final Logger log = 
             LoggerFactory.getLogger(PROVMetadataGenerator.class.getSimpleName());
+
+    private Map<TriplesMap, Resource> triplesMapNodes = new HashMap<>();
     
     public void generateDatasetMetaData(IRI datasetURI, RMLMapping rmlMapping,
             RMLDataset dataset, String outputFile, String startTime, String endTime){
@@ -89,10 +94,11 @@ public class PROVMetadataGenerator {
         
         Resource mappingActivity = vf.createBNode(
                                   RandomStringUtils.randomAlphanumeric(10));
+        this.triplesMapNodes.put(map, mappingActivity);
         
         log.debug("mapping activity " + mappingActivity);
         //Add prov:used
-        IRI pre = vf.createIRI(PROVVocabulary.PROV_NAMESPACE +
+        IRI pre = vf.createIRI(
                 PROVVocabulary.PROV_NAMESPACE
                 + PROVVocabulary.PROVTerm.USED.toString());
         
@@ -138,6 +144,47 @@ public class PROVMetadataGenerator {
                         vf.createIRI(PROVVocabulary.PROV_NAMESPACE +
                         PROVVocabulary.PROVTerm.WASGENERATEDBY.toString()),
                         vf.createIRI(map.getName()));
+    }
+
+    public void generateFunctionTermMetaData(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, String> parameters, List<Value> objects) {
+
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+
+        TriplesMap parentMap = functionTermMap.getOwnTriplesMap();
+        Resource mappingActivity;
+        if (!this.triplesMapNodes.containsKey(parentMap)) {
+            mappingActivity = vf.createBNode(
+                    RandomStringUtils.randomAlphanumeric(10));
+            this.triplesMapNodes.put(parentMap, mappingActivity);
+        } else {
+            mappingActivity = this.triplesMapNodes.get(parentMap);
+        }
+
+        dataset.add(mappingActivity, RDF.TYPE, vf.createIRI(PROVVocabulary.PROV_NAMESPACE, "Activity"));
+
+        Resource execActivity = vf.createBNode(
+                RandomStringUtils.randomAlphanumeric(10));
+        dataset.add(execActivity, vf.createIRI(PROVVocabulary.PROV_NAMESPACE, "wasInformedBy"), mappingActivity);
+        dataset.add(execActivity, vf.createIRI(PROVVocabulary.PROV_NAMESPACE, "used"), vf.createIRI(function));
+
+        for (Object o : parameters.entrySet()) {
+            Map.Entry pair = (Map.Entry) o;
+            Resource input = vf.createBNode(
+                    RandomStringUtils.randomAlphanumeric(10));
+            dataset.add(input, RDF.VALUE, vf.createLiteral((String) pair.getValue()));
+            dataset.add(execActivity, vf.createIRI(PROVVocabulary.PROV_NAMESPACE, "used"), input);
+        }
+
+        for (Value o : objects) {
+            Resource output = vf.createBNode(
+                    RandomStringUtils.randomAlphanumeric(10));
+            dataset.add(output, RDF.VALUE, o);
+            dataset.add(output, vf.createIRI(PROVVocabulary.PROV_NAMESPACE, "wasGeneratedBy"), execActivity);
+        }
+
+        // TODO started/ended
+
+        log.info("EXEC PROV METADATA: " + execActivity.toString() + " - " + function);
     }
     
     private void addStartEndDateTime(RMLDataset metadataDataset, 

@@ -1,11 +1,15 @@
 package be.ugent.mmlab.rml.metadata;
 
+import be.ugent.mmlab.rml.model.RDFTerm.FunctionTermMap;
+import be.ugent.mmlab.rml.model.RDFTerm.GraphMap;
 import be.ugent.mmlab.rml.model.RMLMapping;
 import be.ugent.mmlab.rml.model.TriplesMap;
 import be.ugent.mmlab.rml.model.dataset.MetadataRMLDataset;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
@@ -32,22 +36,17 @@ public class MetadataGenerator {
     private PROVMetadataGenerator provMetadataGenerator;
     private CoMetadataGenerator coMetadataGenerator;
     private DCATMetadataGenerator dcatMetadataGenerator;
+    private FnOMetadataGenerator fnoMetadataGenerator;
     protected LocalRepositoryManager manager;
     
     public MetadataGenerator() {
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        coMetadataGenerator = new CoMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
+        buildMetadataGenerators();
     }
     
     public MetadataGenerator(String pathToNativeStore) {
         SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        coMetadataGenerator = new CoMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
+        buildMetadataGenerators();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
@@ -64,10 +63,8 @@ public class MetadataGenerator {
             String pathToNativeStore, LocalRepositoryManager manager) {
         SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        coMetadataGenerator = new CoMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
+        buildMetadataGenerators();
+
         this.manager = manager;
 
         //generate the datasetURI
@@ -79,14 +76,19 @@ public class MetadataGenerator {
             MetadataRMLDataset metadataDataset, String pathToNativeStore) {
         SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        coMetadataGenerator = new CoMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
+        buildMetadataGenerators();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
         datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
+    }
+
+    private void buildMetadataGenerators() {
+        voidMetadataGenerator = new VoIDMetadataGenerator();
+        provMetadataGenerator = new PROVMetadataGenerator();
+        coMetadataGenerator = new CoMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
+        fnoMetadataGenerator = new FnOMetadataGenerator();
     }
 
     //TODO:Perhaps completely skip this method
@@ -223,6 +225,48 @@ public class MetadataGenerator {
                     log.debug("Generating validation metadata");
                     coMetadataGenerator.generateTripleMetaData((RMLDataset) dataset, 
                             map, subject, predicate, object, validation);
+                    break;
+                default:
+                    log.debug("No option found");
+            }
+        }
+
+        dataset.setRepository(tmp);
+    }
+
+    public void generateFunctionTermMetadata(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, String> parameters, List<Value> objects) {
+        Repository tmp = dataset.getRepository();
+        List vocabs = dataset.getMetadataVocab();
+
+        log.debug("Generating function term metadata...");
+
+        try {
+            if(!manager.isInitialized())
+                manager.initialize();
+            Repository repo = manager.getRepository("metadata");
+            repo.initialize();
+            dataset.setRepository(repo);
+        } catch (RepositoryConfigException ex) {
+            log.error("Repository Config Exception " + ex);
+        } catch (RepositoryException ex) {
+            log.error("Repository Exception " + ex);
+        }
+
+        if(vocabs.isEmpty()){
+            provMetadataGenerator.generateFunctionTermMetaData(dataset, functionTermMap, function, parameters, objects);
+            fnoMetadataGenerator.generateFunctionTermMetaData(dataset, functionTermMap, function, parameters, objects);
+        }
+
+        for (Object vocab : vocabs) {
+            switch (vocab.toString()) {
+                case "prov":
+                    provMetadataGenerator.generateFunctionTermMetaData(dataset, functionTermMap, function, parameters, objects);
+                    break;
+                case "fno":
+                    fnoMetadataGenerator.generateFunctionTermMetaData(dataset, functionTermMap, function, parameters, objects);
+                    break;
+                case "co":
+                    log.debug("TODO, generateFunctionTermMetadata for `co` vocab");
                     break;
                 default:
                     log.debug("No option found");
