@@ -234,7 +234,7 @@ public class MetadataGenerator {
         dataset.setRepository(tmp);
     }
 
-    public void generateFunctionTermMetadata(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, String> parameters, List<Value> objects) {
+    public void generateFunctionTermMetadata(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, Object> parameters, List<Value> objects) {
         Repository tmp = dataset.getRepository();
         List vocabs = dataset.getMetadataVocab();
 

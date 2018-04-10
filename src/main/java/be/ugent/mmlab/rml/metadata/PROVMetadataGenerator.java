@@ -146,7 +146,7 @@ public class PROVMetadataGenerator {
                         vf.createIRI(map.getName()));
     }
 
-    public void generateFunctionTermMetaData(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, String> parameters, List<Value> objects) {
+    public void generateFunctionTermMetaData(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, Object> parameters, List<Value> objects) {
 
         SimpleValueFactory vf = SimpleValueFactory.getInstance();
 

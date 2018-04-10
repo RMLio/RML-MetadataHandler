@@ -35,7 +35,7 @@ public class FnOMetadataGenerator {
 
     private Map<TriplesMap, Resource> triplesMapNodes = new HashMap<>();
 
-    public void generateFunctionTermMetaData(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, String> parameters, List<Value> objects) {
+    public void generateFunctionTermMetaData(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, Object> parameters, List<Value> objects) {
 
         SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
