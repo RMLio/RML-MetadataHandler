@@ -7,16 +7,15 @@ import be.ugent.mmlab.rml.vocabularies.VoIDVocabulary;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.config.RepositoryConfigException;
-import org.openrdf.repository.manager.LocalRepositoryManager;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.config.RepositoryConfigException;
+import org.eclipse.rdf4j.repository.manager.LocalRepositoryManager;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,96 +34,97 @@ public class VoIDMetadataGenerator {
             LoggerFactory.getLogger(
             VoIDMetadataGenerator.class.getSimpleName());
     
-    public void generateDatasetMetaData(URI datasetURI, MetadataRMLDataset dataset, 
+    public void generateDatasetMetaData(IRI datasetURI, MetadataRMLDataset dataset,
             String outputFile, LocalRepositoryManager manager){
         Set<String> repos;
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
         log.debug("VoID Metadata generation...");
         
         //Add VoID Dataset type
-        Value obj = new URIImpl(
+        Value obj = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.DATASET_CLASS);
 
         dataset.add(datasetURI, RDF.TYPE, obj);
         
         //Add void:triples
-        URI pre = new URIImpl(
+        IRI pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.TRIPLES.toString());
 
         if(dataset.getMetadataLevel().equals("dataset"))
             numberOfTriples = getDatasetSize( dataset, manager);
-        obj = new LiteralImpl(String.valueOf(numberOfTriples));
+        obj = vf.createLiteral(String.valueOf(numberOfTriples));
          
         dataset.add(datasetURI, pre, obj);
         
         //Add void:feature
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.FEATURE.toString());
         RDFFormat format = dataset.selectFormat(dataset.getMetadataFormat());
 
-        obj = new URIImpl(format.getStandardURI().stringValue());
+        obj = vf.createIRI(format.getStandardURI().stringValue());
         
         dataset.add(datasetURI, pre, obj);
         
         //Add void:distinctSubjects
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.DISTINCTSUBJECTS.toString());
 
         if(dataset.getMetadataLevel().equals("dataset"))
             numberOfDistinctSubjects = dataset.getNumberOfDistinctSubjects();
-        obj = new LiteralImpl(String.valueOf(numberOfDistinctSubjects));
+        obj = vf.createLiteral(String.valueOf(numberOfDistinctSubjects));
         
         dataset.add(datasetURI, pre, obj);
         
         //Add void:distinctObjects
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.DISTINCTOBJECTS.toString());
 
         if(dataset.getMetadataLevel().equals("dataset"))
             numberOfDistinctObjects = dataset.getNumberOfDistinctObjects();
-        obj = new LiteralImpl(String.valueOf(numberOfDistinctObjects));
+        obj = vf.createLiteral(String.valueOf(numberOfDistinctObjects));
         
         dataset.add(datasetURI, pre, obj);
         
         //Add void:entities
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.ENTITIES.toString());
 
         if(dataset.getMetadataLevel().equals("dataset"))
             numberOfDistinctEntities = dataset.getNumberOfDistinctEntities();
-        obj = new LiteralImpl(String.valueOf(numberOfDistinctEntities));
+        obj = vf.createLiteral(String.valueOf(numberOfDistinctEntities));
         
         dataset.add(datasetURI, pre, obj);
         
         //Add void:classes
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.CLASSES.toString());
 
         if(dataset.getMetadataLevel().equals("dataset"))
             numberOfdistinctClasses = dataset.getNumberOfClasses();
-        obj = new LiteralImpl(String.valueOf(numberOfdistinctClasses));
+        obj = vf.createLiteral(String.valueOf(numberOfdistinctClasses));
         
         dataset.add(datasetURI, pre, obj);
         
         //Add void:properties
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.PROPERTIES.toString());
 
         if(dataset.getMetadataLevel().equals("dataset"))
             numberOfdistinctProperties = dataset.getNumberOfProperties();
-        obj = new LiteralImpl(String.valueOf(numberOfdistinctProperties));
+        obj = vf.createLiteral(String.valueOf(numberOfdistinctProperties));
         
         dataset.add(datasetURI, pre, obj);
         
         //Add void:documents
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.DOCUMENTS.toString());
         String numberOfDocuments = "1";
@@ -136,45 +136,45 @@ public class VoIDMetadataGenerator {
                 log.error("Repository Exception " + ex);
             }
         }
-        obj = new LiteralImpl(String.valueOf(numberOfDocuments));
+        obj = vf.createLiteral(String.valueOf(numberOfDocuments));
         
         dataset.add(datasetURI, pre, obj);
         
         //Add void:dataDump
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.DATADUMP.toString());
 
         File file = new File(outputFile);
-        obj = new URIImpl("file://" + file.getAbsolutePath());
+        obj = vf.createIRI("file://" + file.getAbsolutePath());
         
         dataset.add(datasetURI, pre, obj);
     }
     
     public Resource generateDatasetFeature(String format) {
-        
-        URI obj = null;
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+        IRI obj = null;
         switch (format) {
             case "ntriples":
-                obj =  new URIImpl("http://www.w3.org/ns/formats/N-Triples");
+                obj =  vf.createIRI("http://www.w3.org/ns/formats/N-Triples");
                 break;
             case "n3":
-                obj =  new URIImpl("http://www.w3.org/ns/formats/N3");
+                obj =  vf.createIRI("http://www.w3.org/ns/formats/N3");
                 break;
             case "turtle":
-                obj = new URIImpl("http://www.w3.org/ns/formats/Turtle");
+                obj = vf.createIRI("http://www.w3.org/ns/formats/Turtle");
                 break;
             case "nquads":
-                obj =  new URIImpl("http://www.w3.org/ns/formats/N-Quads");
+                obj = vf.createIRI("http://www.w3.org/ns/formats/N-Quads");
                 break;
             case "rdfxml":
-                obj =  new URIImpl("http://www.w3.org/ns/formats/RDF_XML");
+                obj = vf.createIRI("http://www.w3.org/ns/formats/RDF_XML");
                 break;
             case "rdfjson":
-                obj =  new URIImpl("http://www.w3.org/ns/formats/RDF_JSON");;
+                obj = vf.createIRI("http://www.w3.org/ns/formats/RDF_JSON");;
                 break;
             case "jsonld":
-                obj =  new URIImpl("http://www.w3.org/ns/formats/JSON_LD");
+                obj =  vf.createIRI("http://www.w3.org/ns/formats/JSON_LD");
                 break;
         }
         
@@ -183,30 +183,31 @@ public class VoIDMetadataGenerator {
     }
     
     public void generateTriplesMapMetaData(
-            URI datasetURI, MetadataRMLDataset dataset, TriplesMap triplesMap,
+            IRI datasetURI, MetadataRMLDataset dataset, TriplesMap triplesMap,
             String outputFile, LocalRepositoryManager manager) {
         Value obj;
-        Resource sub = new URIImpl(triplesMap.getName());
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+        Resource sub = vf.createIRI(triplesMap.getName());
 
         //Add void:triples
-        URI pre = new URIImpl(
+        IRI pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.TRIPLES.toString());
         int size = getDatasetSize(dataset, triplesMap, manager);
         numberOfTriples += size;
-        obj = new LiteralImpl(String.valueOf(size));
+        obj = vf.createLiteral(String.valueOf(size));
         dataset.add(sub, pre, obj);
         
         //Add void:dataDump
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.DATADUMP);
         
         File file = new File(outputFile);
         String[] name = triplesMap.getName().split("#");
         try {
-        obj = new URIImpl("file://" 
-                + file.getCanonicalPath().replaceAll("(\\.[a-zA-Z0-9]*)", name[1] + "$1"));
+        obj = vf.createIRI("file://"
+                + file.getCanonicalPath().replaceAll("(\\.[a-zA-Z0-9]*)", "1" + "$1"));
         } catch (IOException ex) {
             log.error("IO Exception " + ex);
         }
@@ -214,17 +215,17 @@ public class VoIDMetadataGenerator {
         dataset.add(sub, pre, obj);
         
         //Add void:subset
-        pre = new URIImpl(
+        pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + VoIDVocabulary.VoIDTerm.SUBSET);
-        obj = new URIImpl(triplesMap.getName());
-        dataset.add(new URIImpl("file://" + file.getAbsolutePath()), pre, obj);
+        obj = vf.createIRI(triplesMap.getName());
+        dataset.add(vf.createIRI("file://" + file.getAbsolutePath()), pre, obj);
         
         //Add void:distinctSubjects
         VoIDVocabulary.VoIDTerm property;
         property = VoIDVocabulary.VoIDTerm.DISTINCTSUBJECTS;
         
-        obj = new LiteralImpl(String.valueOf(dataset.getNumberOfDistinctSubjects()));
+        obj = vf.createLiteral(String.valueOf(dataset.getNumberOfDistinctSubjects()));
         numberOfDistinctSubjects += dataset.getNumberOfDistinctSubjects();
         
         generateTriplesMapEntitiesMetadata(sub, dataset, property, obj);
@@ -232,7 +233,7 @@ public class VoIDMetadataGenerator {
         //Add void:distinctObjects
         property = VoIDVocabulary.VoIDTerm.DISTINCTOBJECTS;
         
-        obj = new LiteralImpl(String.valueOf(dataset.getNumberOfDistinctObjects()));
+        obj = vf.createLiteral(String.valueOf(dataset.getNumberOfDistinctObjects()));
         numberOfDistinctObjects += dataset.getNumberOfDistinctObjects();
         
         generateTriplesMapEntitiesMetadata(sub, dataset, property, obj);
@@ -240,7 +241,7 @@ public class VoIDMetadataGenerator {
         //Add void:entities
         property = VoIDVocabulary.VoIDTerm.ENTITIES;
         
-        obj = new LiteralImpl(String.valueOf(dataset.getNumberOfDistinctEntities()));
+        obj = vf.createLiteral(String.valueOf(dataset.getNumberOfDistinctEntities()));
         numberOfDistinctEntities += dataset.getNumberOfDistinctEntities();
         
         generateTriplesMapEntitiesMetadata(sub, dataset, property, obj);
@@ -248,7 +249,7 @@ public class VoIDMetadataGenerator {
         //Add void:classes
         property = VoIDVocabulary.VoIDTerm.CLASSES;
         
-        obj = new LiteralImpl(String.valueOf(dataset.getNumberOfClasses()));
+        obj = vf.createLiteral(String.valueOf(dataset.getNumberOfClasses()));
         numberOfdistinctClasses += dataset.getNumberOfClasses();
         
         generateTriplesMapEntitiesMetadata(sub, dataset, property, obj);
@@ -256,7 +257,7 @@ public class VoIDMetadataGenerator {
         //Add void:properties
         property = VoIDVocabulary.VoIDTerm.PROPERTIES;
         
-        obj = new LiteralImpl(String.valueOf(dataset.getNumberOfProperties()));
+        obj = vf.createLiteral(String.valueOf(dataset.getNumberOfProperties()));
         numberOfdistinctProperties += dataset.getNumberOfProperties();
         
         generateTriplesMapEntitiesMetadata(sub, dataset, property, obj);
@@ -265,9 +266,9 @@ public class VoIDMetadataGenerator {
     private void generateTriplesMapEntitiesMetadata(
             Resource subject, RMLDataset metadataDataset, 
             VoIDVocabulary.VoIDTerm property, Value obj){
-        
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
         //Add void:entities
-        URI pre = new URIImpl(
+        IRI pre = vf.createIRI(
                 VoIDVocabulary.VOID_NAMESPACE
                 + property.toString());
 
@@ -280,7 +281,7 @@ public class VoIDMetadataGenerator {
         int size = 0;
         String[] name = map.getName().split("#");
         try {
-            dataset.setRepository(manager.getRepository(name[1]));
+            dataset.setRepository(manager.getRepository("1"));
             size = dataset.getSize();
             dataset.setRepository(manager.getRepository("metadata"));
         } catch (RepositoryConfigException ex) {

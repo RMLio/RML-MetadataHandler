@@ -3,10 +3,10 @@ package be.ugent.mmlab.rml.model.dataset;
 import be.ugent.mmlab.rml.model.TriplesMap;
 import java.io.File;
 import java.util.List;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.repository.Repository;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.repository.Repository;
 
 /**
  *
@@ -23,7 +23,7 @@ public interface MetadataRMLDataset extends RMLDataset{
      * @param contexts
      */
     public void addReification(TriplesMap map,
-            Resource s, URI p, Value o, Resource... contexts);
+            Resource s, IRI p, Value o, Resource... contexts);
     
     /**
      *
@@ -92,7 +92,7 @@ public interface MetadataRMLDataset extends RMLDataset{
      * @param p
      * @return
      */
-    public boolean checkDistinctProperty(URI p);
+    public boolean checkDistinctProperty(IRI p);
     
     /**
      *
@@ -100,7 +100,7 @@ public interface MetadataRMLDataset extends RMLDataset{
      * @param p
      * @param o
      */
-    public void checkDistinctEntities(Resource s, URI p, Value o);
+    public void checkDistinctEntities(Resource s, IRI p, Value o);
     
     /**
      *
@@ -114,12 +114,7 @@ public interface MetadataRMLDataset extends RMLDataset{
      * @return
      */
     public String getMetadataFormat();
-    
-    /**
-     *
-     * @return
-     */
-    public List getMetadataVocab();
+   
     
     /**
      *

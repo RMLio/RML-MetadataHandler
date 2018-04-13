@@ -5,18 +5,18 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.manager.LocalRepositoryManager;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.manager.LocalRepositoryManager;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +36,11 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
             distinctSubjects = 0, distinctObjects = 0, 
             distinctEntities = 0, triples = 0;
     protected String metadataLevel = "None";
-    protected String metadataFormat = null;
-    protected List metadataVocab;
+    protected String metadataFormat = null;    
     
     //TODO: Spring it
     @Override
-    public void add(Resource s, URI p, Value o, Resource... contexts) {
+    public void add(Resource s, IRI p, Value o, Resource... contexts) {
         if (log.isDebugEnabled()) {
             log.debug("Add triple (" + s.stringValue()
                     + ", " + p.stringValue() + ", " + o.stringValue() + ").");
@@ -66,7 +65,8 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
     
     @Override
     public void addReification(TriplesMap map, 
-        Resource s, URI p, Value o, Resource... contexts) {
+        Resource s, IRI p, Value o, Resource... contexts) {
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
         
         log.debug("Add triple (" + s.stringValue()
                 + ", " + p.stringValue() + ", " + o.stringValue() + ").");
@@ -75,7 +75,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
             RepositoryConnection con = repository.getConnection();
             try {
                 ValueFactory myFactory = con.getValueFactory();
-                Resource triple = new BNodeImpl(
+                Resource triple = vf.createBNode(
                         RandomStringUtils.randomAlphanumeric(10));
                 Statement st = myFactory.createStatement(triple, RDF.TYPE,
                         RDF.STATEMENT);
@@ -226,7 +226,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
     }
     
     @Override
-    public boolean checkDistinctProperty(URI p) {
+    public boolean checkDistinctProperty(IRI p) {
         RepositoryConnection con = null;
         try {
             con = repository.getConnection();
@@ -246,7 +246,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
     }
     
     @Override
-    public void checkDistinctEntities(Resource s, URI p, Value o){
+    public void checkDistinctEntities(Resource s, IRI p, Value o){
         if(checkDistinctSubject(s)){
             ++distinctSubjects;
             if(checkDistinctObject(s))
@@ -255,7 +255,9 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
         
         if(checkDistinctObject(o)){
             ++distinctObjects;
-            if(!o.getClass().getSimpleName().equals("LiteralImpl") 
+            Class ding1 = o.getClass();
+            String ding2 = ding1.getSimpleName();
+            if(!o.getClass().getSimpleName().equals("SimpleLiteral")
                     && checkDistinctSubject((Resource) o))
                 ++distinctEntities;
         }
@@ -319,7 +321,7 @@ public class StdMetadataRMLDataset extends StdRMLDataset implements MetadataRMLD
 
     @Override
     public void addToRepository(TriplesMap map, 
-        Resource s, URI p, Value o, Resource... contexts) {
+        Resource s, IRI p, Value o, Resource... contexts) {
         log.error("Not supported yet."); 
     }
 

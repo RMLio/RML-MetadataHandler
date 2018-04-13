@@ -1,19 +1,23 @@
 package be.ugent.mmlab.rml.metadata;
 
+import be.ugent.mmlab.rml.model.RDFTerm.FunctionTermMap;
+import be.ugent.mmlab.rml.model.RDFTerm.GraphMap;
 import be.ugent.mmlab.rml.model.RMLMapping;
 import be.ugent.mmlab.rml.model.TriplesMap;
 import be.ugent.mmlab.rml.model.dataset.MetadataRMLDataset;
 import be.ugent.mmlab.rml.model.dataset.RMLDataset;
 import java.io.File;
 import java.util.List;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.config.RepositoryConfigException;
-import org.openrdf.repository.manager.LocalRepositoryManager;
+import java.util.Map;
+
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.config.RepositoryConfigException;
+import org.eclipse.rdf4j.repository.manager.LocalRepositoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,27 +31,26 @@ public class MetadataGenerator {
     // Log
     private static final Logger log =
             LoggerFactory.getLogger(MetadataGenerator.class.getSimpleName());
-    private URI datasetURI;
+    private IRI datasetURI;
     private VoIDMetadataGenerator voidMetadataGenerator;
     private PROVMetadataGenerator provMetadataGenerator;
+    private CoMetadataGenerator coMetadataGenerator;
     private DCATMetadataGenerator dcatMetadataGenerator;
+    private FnOMetadataGenerator fnoMetadataGenerator;
     protected LocalRepositoryManager manager;
     
     public MetadataGenerator() {
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
+        buildMetadataGenerators();
     }
     
     public MetadataGenerator(String pathToNativeStore) {
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
+        buildMetadataGenerators();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
-        datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
+        datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
         this.manager = new LocalRepositoryManager(new File(pathToNativeStore));
         try {
             this.manager.initialize();
@@ -58,26 +61,34 @@ public class MetadataGenerator {
     
     public MetadataGenerator(
             String pathToNativeStore, LocalRepositoryManager manager) {
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
+        buildMetadataGenerators();
+
         this.manager = manager;
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
-        datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
+        datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
     }
     
     public MetadataGenerator(
             MetadataRMLDataset metadataDataset, String pathToNativeStore) {
-        voidMetadataGenerator = new VoIDMetadataGenerator();
-        provMetadataGenerator = new PROVMetadataGenerator();
-        dcatMetadataGenerator = new DCATMetadataGenerator();
+        SimpleValueFactory vf = SimpleValueFactory.getInstance();
+
+        buildMetadataGenerators();
 
         //generate the datasetURI
         File file = new File(pathToNativeStore);
-        datasetURI = new URIImpl("file://" + file.getAbsolutePath().toString());
+        datasetURI = vf.createIRI("file://" + file.getAbsolutePath().toString());
+    }
+
+    private void buildMetadataGenerators() {
+        voidMetadataGenerator = new VoIDMetadataGenerator();
+        provMetadataGenerator = new PROVMetadataGenerator();
+        coMetadataGenerator = new CoMetadataGenerator();
+        dcatMetadataGenerator = new DCATMetadataGenerator();
+        fnoMetadataGenerator = new FnOMetadataGenerator();
     }
 
     //TODO:Perhaps completely skip this method
@@ -135,6 +146,8 @@ public class MetadataGenerator {
                     dcatMetadataGenerator.generateDatasetMetaData(
                             datasetURI, dataset);
                     break;
+                case "co":
+                    log.debug("Generating validation metadata...");
             }
         }
         log.info("RML mapping done! Generated "
@@ -166,6 +179,11 @@ public class MetadataGenerator {
                     voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, 
                     dataset, triplesMap, outputFile, manager);
                     break;
+                case "co":
+                    provMetadataGenerator.generateTriplesMapMetaData(datasetURI, triplesMap,
+                            dataset, outputFile, startDateTime, endDateTime);
+                    voidMetadataGenerator.generateTriplesMapMetaData(datasetURI, dataset, 
+                            triplesMap, outputFile, manager);
                 case "dcat":
                     dcatMetadataGenerator.generateTriplesMapMetaData(
                             datasetURI, dataset, triplesMap);
@@ -174,7 +192,7 @@ public class MetadataGenerator {
     }
     
     public void generateTripleMetaData(MetadataRMLDataset dataset, TriplesMap map, 
-            Resource subject, URI predicate, Value object, String validation) {
+            Resource subject, IRI predicate, Value object, String validation) {
         Repository tmp = dataset.getRepository();
         List vocabs = dataset.getMetadataVocab();
         
@@ -203,6 +221,55 @@ public class MetadataGenerator {
                     provMetadataGenerator.generateTripleMetaData(
                             (RMLDataset) dataset, map, subject, predicate, object);
                     break;
+                case "co":
+                    log.debug("Generating validation metadata");
+                    coMetadataGenerator.generateTripleMetaData((RMLDataset) dataset, 
+                            map, subject, predicate, object, validation);
+                    break;
+                default:
+                    log.debug("No option found");
+            }
+        }
+
+        dataset.setRepository(tmp);
+    }
+
+    public void generateFunctionTermMetadata(MetadataRMLDataset dataset, FunctionTermMap functionTermMap, String function, Map<String, Object> parameters, List<Value> objects) {
+        Repository tmp = dataset.getRepository();
+        List vocabs = dataset.getMetadataVocab();
+
+        log.debug("Generating function term metadata...");
+
+        try {
+            if(!manager.isInitialized())
+                manager.initialize();
+            Repository repo = manager.getRepository("metadata");
+            repo.initialize();
+            dataset.setRepository(repo);
+        } catch (RepositoryConfigException ex) {
+            log.error("Repository Config Exception " + ex);
+        } catch (RepositoryException ex) {
+            log.error("Repository Exception " + ex);
+        }
+
+        if(vocabs.isEmpty()){
+            provMetadataGenerator.generateFunctionTermMetaData(dataset, functionTermMap, function, parameters, objects);
+            fnoMetadataGenerator.generateFunctionTermMetaData(dataset, functionTermMap, function, parameters, objects);
+        }
+
+        for (Object vocab : vocabs) {
+            switch (vocab.toString()) {
+                case "prov":
+                    provMetadataGenerator.generateFunctionTermMetaData(dataset, functionTermMap, function, parameters, objects);
+                    break;
+                case "fno":
+                    fnoMetadataGenerator.generateFunctionTermMetaData(dataset, functionTermMap, function, parameters, objects);
+                    break;
+                case "co":
+                    log.debug("TODO, generateFunctionTermMetadata for `co` vocab");
+                    break;
+                default:
+                    log.debug("No option found");
             }
         }
 

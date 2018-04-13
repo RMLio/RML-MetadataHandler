@@ -2,19 +2,19 @@ package be.ugent.mmlab.rml.model.dataset;
 
 import be.ugent.mmlab.rml.model.TriplesMap;
 import java.io.File;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.config.RepositoryConfig;
-import org.openrdf.repository.config.RepositoryConfigException;
-import org.openrdf.repository.manager.LocalRepositoryManager;
-import org.openrdf.repository.sail.config.SailRepositoryConfig;
-import org.openrdf.sail.nativerdf.config.NativeStoreConfig;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.config.RepositoryConfig;
+import org.eclipse.rdf4j.repository.config.RepositoryConfigException;
+import org.eclipse.rdf4j.repository.manager.LocalRepositoryManager;
+import org.eclipse.rdf4j.repository.sail.config.SailRepositoryConfig;
+import org.eclipse.rdf4j.sail.nativerdf.config.NativeStoreConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,11 +81,14 @@ public class MetadataFileDataset extends StdMetadataRMLDataset implements Metada
     
     @Override
     public void addToRepository(TriplesMap map, 
-        Resource s, URI p, Value o, Resource... contexts) {
+        Resource s, IRI p, Value o, Resource... contexts) {
         try {
             //TODO: Spring it!
             String[] name = map.getName().split("#");
             Repository currentRepo = manager.getRepository(name[1]);
+            if (currentRepo == null) {
+                currentRepo = manager.getRepository("metadata");
+            }
             RepositoryConnection con = currentRepo.getConnection();
             addTriple(con, s, p, o, contexts);
             con.close();
@@ -97,7 +100,7 @@ public class MetadataFileDataset extends StdMetadataRMLDataset implements Metada
     }
     
     @Override
-    public void add(Resource s, URI p, Value o, Resource... contexts) {
+    public void add(Resource s, IRI p, Value o, Resource... contexts) {
         //log.debug("Add triple (" + s.stringValue()
         //        + ", " + p.stringValue() + ", " + o.stringValue() + ").");
         
@@ -122,7 +125,7 @@ public class MetadataFileDataset extends StdMetadataRMLDataset implements Metada
     }
     
     private void addTriple(RepositoryConnection con,
-            Resource s, URI p, Value o, Resource... contexts) {
+            Resource s, IRI p, Value o, Resource... contexts) {
         boolean flag = true;
         try {
             ValueFactory myFactory = con.getValueFactory();
@@ -156,6 +159,10 @@ public class MetadataFileDataset extends StdMetadataRMLDataset implements Metada
                     con.add(st, contexts);
                     break;
                 case "triple":
+                    checkDistinctEntities(s, p, o);
+                    con.add(st, contexts);
+                    break;
+                case "term":
                     checkDistinctEntities(s, p, o);
                     con.add(st, contexts);
                     break;
